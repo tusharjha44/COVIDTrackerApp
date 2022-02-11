@@ -10,6 +10,9 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -53,7 +56,7 @@ class MainActivity : AppCompatActivity() {
 
                 nationDailyData = nationalData.reversed()
                 Log.i(TAG, "Update graph with national data")
-
+                updateDisplayWithData(nationDailyData)
 
             }
 
@@ -87,6 +90,31 @@ class MainActivity : AppCompatActivity() {
                 Log.e(TAG, "onFailure $t")
             }
         })
+
+    }
+
+    private fun updateDisplayWithData(dailyData: List<CovidData>) {
+        //Create a new SparkAdapter with data
+
+        val adapter = CovidSparkAdapter(dailyData)
+
+        binding.sparkView.adapter = adapter
+
+
+        //Update radio button to select the positive cases and max time by default
+
+        binding.radioButtonPositive.isChecked = true
+        binding.radioButtonMax.isChecked = true
+
+        //Display metric for the most recent date
+        updateInfoForDate(dailyData.last())
+    }
+
+    private fun updateInfoForDate(covidData: CovidData) {
+        binding.tickerView.text = NumberFormat.getInstance().format(covidData.positiveIncrease)
+
+        val outputDateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.US)
+        binding.tvDateLabel.text = outputDateFormat.format(covidData.dateChecked)
 
     }
 }
