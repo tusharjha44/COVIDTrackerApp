@@ -32,6 +32,10 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+//    repositories {
+//        maven { url "https://jitpack.io" }
+//    }
+
 }
 
 dependencies {
@@ -51,4 +55,6 @@ dependencies {
     //RobinHood SparkView
     implementation 'com.robinhood.spark:spark:1.2.0'
 
+    //Ticker
+    implementation 'com.robinhood.ticker:ticker:2.0.4'
 }

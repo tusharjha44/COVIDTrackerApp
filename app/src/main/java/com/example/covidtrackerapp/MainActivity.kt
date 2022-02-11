@@ -3,8 +3,14 @@ package com.example.covidtrackerapp
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import androidx.annotation.ColorInt
+import androidx.core.content.ContextCompat
 import com.example.covidtrackerapp.databinding.ActivityMainBinding
 import com.google.gson.GsonBuilder
+import com.robinhood.ticker.TickerUtils
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -13,7 +19,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.ceil
 
 
 class MainActivity : AppCompatActivity() {
@@ -24,6 +29,7 @@ class MainActivity : AppCompatActivity() {
         const val ALL_STATES = "All (Nationwide)"
     }
 
+    private lateinit var currentlyShownData: List<CovidData>
     private lateinit var adapter: CovidSparkAdapter
     private lateinit var binding: ActivityMainBinding
     private lateinit var perStateDailyData: Map<String, List<CovidData>>
@@ -33,6 +39,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        supportActionBar?.title = getString(R.string.app_discription)
 
         //GSON object
         val gson = GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").create()
@@ -87,6 +95,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 Log.i(TAG, "Update spinner with state names")
 
+                //Update spinner with state names
+                updateSpinnerWithStateDat(perStateDailyData.keys)
 
             }
 
@@ -97,7 +107,49 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun updateSpinnerWithStateDat(stateNames: Set<String>) {
+        val stateAbbreviationList = stateNames.toMutableList()
+        stateAbbreviationList.sort()
+
+        stateAbbreviationList.add(0, ALL_STATES)
+
+        //Add state list as data source to spinner
+        val spinner = binding.spinnerSelect
+        val adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item, stateAbbreviationList
+        )
+        spinner.adapter = adapter
+
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener,
+            AdapterView.OnItemClickListener {
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
+                val selectedState = stateAbbreviationList[position]
+                val selectedData = perStateDailyData[selectedState]
+                if (selectedData != null) {
+                    updateDisplayWithData(selectedData)
+                }else{
+                    updateDisplayWithData(nationDailyData)
+                }
+            }
+
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+                updateDisplayWithData(nationDailyData)
+            }
+
+            override fun onItemClick(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+                //Not used
+            }
+        }
+
+
+    }
+
+
     private fun setUpEventListeners() {
+
+        binding.tickerView.setCharacterLists(TickerUtils.provideNumberList())
+
         //Add listener for the user scrubbing on the chart
         binding.sparkView.isScrubEnabled = true
         binding.sparkView.setScrubListener {
@@ -129,12 +181,30 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateDisplayMetric(metric: Metric) {
 
+        //Update the color of chart
+        val colorRes = when(metric){
+            Metric.DEATH -> R.color.colorDeath
+            Metric.NEGATIVE -> R.color.colorNegative
+            else -> R.color.colorPositive
+        }
+        @ColorInt
+        val colorInt = ContextCompat.getColor(this,colorRes)
+        binding.sparkView.lineColor = colorInt
+        binding.tickerView.textColor = colorInt
+
+        //Update the metric
         adapter.metric = metric
         adapter.notifyDataSetChanged()
+
+        //Reset number and date in the last textViews.
+        updateInfoForDate(currentlyShownData.last())
 
     }
 
     private fun updateDisplayWithData(dailyData: List<CovidData>) {
+
+        currentlyShownData = dailyData
+
         //Create a new SparkAdapter with data
 
         adapter = CovidSparkAdapter(dailyData)
@@ -148,7 +218,7 @@ class MainActivity : AppCompatActivity() {
         binding.radioButtonMax.isChecked = true
 
         //Display metric for the most recent date
-        updateInfoForDate(dailyData.last())
+        updateDisplayMetric(Metric.POSITIVE)
     }
 
     private fun updateInfoForDate(covidData: CovidData) {
