@@ -13,6 +13,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.ceil
 
 
 class MainActivity : AppCompatActivity() {
@@ -23,6 +24,7 @@ class MainActivity : AppCompatActivity() {
         const val ALL_STATES = "All (Nationwide)"
     }
 
+    private lateinit var adapter: CovidSparkAdapter
     private lateinit var binding: ActivityMainBinding
     private lateinit var perStateDailyData: Map<String, List<CovidData>>
     private lateinit var nationDailyData: List<CovidData>
@@ -53,6 +55,8 @@ class MainActivity : AppCompatActivity() {
                     Log.w(TAG, "Did not receive a valid response body")
                     return
                 }
+
+                setUpEventListeners()
 
                 nationDailyData = nationalData.reversed()
                 Log.i(TAG, "Update graph with national data")
@@ -93,10 +97,47 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun setUpEventListeners() {
+        //Add listener for the user scrubbing on the chart
+        binding.sparkView.isScrubEnabled = true
+        binding.sparkView.setScrubListener {
+            if(it is CovidData){
+                updateInfoForDate(it)
+            }
+        }
+
+        //Respond to radio button
+        binding.radioGroupTimeSelection.setOnCheckedChangeListener { _, checkedId ->
+            adapter.daysAgo = when(checkedId){
+                R.id.radioButtonWeek -> TimeScale.WEEK
+                R.id.radioButtonMonth -> TimeScale.MONTH
+                else -> TimeScale.MAX
+            }
+
+            adapter.notifyDataSetChanged()
+        }
+
+        binding.tvRadioGroup.setOnCheckedChangeListener{_,checkedId ->
+            when(checkedId){
+                R.id.radioButtonPositive -> updateDisplayMetric(Metric.POSITIVE)
+                R.id.radioButtonNegative -> updateDisplayMetric(Metric.NEGATIVE)
+                else -> updateDisplayMetric(Metric.DEATH)
+            }
+        }
+
+    }
+
+    private fun updateDisplayMetric(metric: Metric) {
+
+        adapter.metric = metric
+        adapter.notifyDataSetChanged()
+
+    }
+
     private fun updateDisplayWithData(dailyData: List<CovidData>) {
         //Create a new SparkAdapter with data
 
-        val adapter = CovidSparkAdapter(dailyData)
+        adapter = CovidSparkAdapter(dailyData)
 
         binding.sparkView.adapter = adapter
 
@@ -111,7 +152,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateInfoForDate(covidData: CovidData) {
-        binding.tickerView.text = NumberFormat.getInstance().format(covidData.positiveIncrease)
+
+        val numCases = when(adapter.metric) {
+            Metric.NEGATIVE -> covidData.negativeIncrease
+            Metric.POSITIVE -> covidData.positiveIncrease
+            Metric.DEATH -> covidData.deathIncrease
+        }
+
+        binding.tickerView.text = NumberFormat.getInstance().format(numCases)
 
         val outputDateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.US)
         binding.tvDateLabel.text = outputDateFormat.format(covidData.dateChecked)
