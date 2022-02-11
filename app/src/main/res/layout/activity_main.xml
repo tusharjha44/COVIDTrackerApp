@@ -7,12 +7,106 @@
     tools:context=".MainActivity">
 
     <TextView
+        android:id="@+id/tvSelectState"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/state"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <RadioGroup
+        android:id="@+id/tvRadioGroup"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvSelectState">
+
+        <RadioButton
+            android:id="@+id/radioButtonNegative"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/negative" />
+
+        <RadioButton
+            android:id="@+id/radioButtonPositive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/positive" />
+
+        <RadioButton
+            android:id="@+id/radioButtonDeath"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/deaths" />
+    </RadioGroup>
+
+    <com.robinhood.spark.SparkView
+        android:id="@+id/sparkView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/radioGroupTimeSelection"
+        app:layout_constraintTop_toBottomOf="@+id/tvRadioGroup"
+        app:layout_constraintVertical_bias="0.52"
+        tools:layout_editor_absoluteX="0dp" />
+
+    <RadioGroup
+        android:id="@+id/radioGroupTimeSelection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@color/colorBackgroundShade"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/tickerView">
+
+        <RadioButton
+            android:id="@+id/radioButtonWeek"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/_1_week" />
+
+        <RadioButton
+            android:id="@+id/radioButtonMonth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/_1_month" />
+
+        <RadioButton
+            android:id="@+id/radioButtonMax"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/max" />
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/tvDateLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="80dp"
+        android:layout_marginStart="16dp"
+        android:gravity="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="May 31, 2020" />
+
+    <TextView
+        android:id="@+id/tickerView"
+        android:layout_width="wrap_content"
+        android:layout_height="80dp"
+        android:gravity="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/tvDateLabel"
+        tools:text="4,354" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
